@@ -30,4 +30,4 @@ tm.vamp  # voltage amplitude
 ...
 ```
 
-By default, the Tensormeter RTM server sends messages with all parameter values when a client connects. Additional messages are sent automatically when a parameter value changes (either from the server gui or from a client) to inform the client of new values.
+By default, the Tensormeter RTM server sends messages with all parameter values when a client connects. Additional messages are sent automatically when a parameter value changes (either from the server gui or from a client) to inform the client of new values. Hence, the client's internally stored values should always be up-to-date and no querying/polling is performed.
