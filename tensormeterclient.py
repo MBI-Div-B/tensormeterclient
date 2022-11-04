@@ -161,11 +161,10 @@ class TensormeterRTM1Client:
             raise AttributeError
 
     def measure(self, nmeas: int):
-        self.send("meas", struct.pack(">i", nmeas))
+        self.send("meas", nmeas)
 
     def select_channels(self, channels: list[int]):
-        count = len(channels)
-        self.send("selc", struct.pack(f">{count + 1}I", count, *channels))
+        self.send("selc", channels)
 
     def clear_data(self):
         self.send("cldt")
