@@ -34,13 +34,15 @@ class TensormeterData:
         "cmod": (0, 'H'),
         "amod": (0, 'H'),
         "mod?": (0, 'H'),
-        "trmo": (0, 'H'),
+        "trmo": (0, 'I'),
         "meas": (0, 'i'),
         "swit": (1, 'I'),
         "selc": (1, 'i'),
         "puar": (1, 'd'),
         "newd": (2, 'd'),
         "alld": (2, 'd'),
+        "mult": (0, 'H'),
+        "auup": (0, '?'),
     }
 
     def __init__(self):
@@ -77,7 +79,7 @@ class TensormeterData:
 
     def update(self, cmd: str, data: bytes):
         if cmd not in self.data:
-            raise ValueError
+            raise ValueError(f"Unknown data field: {cmd}, {len(data)} bytes")
         else:
             self.data[cmd] = self.unpack(cmd, data)
 
@@ -127,7 +129,10 @@ class TensormeterRTM1Client:
                     self._log.debug(f"Received {cmd}, {length} data bytes")
 
                     if data:
-                        self._tensordata.update(cmd, data)
+                        try:
+                            self._tensordata.update(cmd, data)
+                        except ValueError as exc:
+                            self._log.error(f"Error updating field {cmd}: {exc}")
                     if cmd in ["newd", "alld"]:
                         self._data_ready_event.set()
                 else:
@@ -170,10 +175,11 @@ class TensormeterRTM1Client:
         self.send("cldt")
 
     def get_data(self, timeout=0.5, all_data=False):
-        self.send("alld" if all_data else "newd")
+        cmd = "alld" if all_data else "newd"
+        self.send(cmd)
         if self._data_ready_event.wait(timeout):
-            self._data_ready_event.reset()
-            return self._tensordata.data["data"]
+            self._data_ready_event.clear()
+            return self._tensordata.data[cmd]
         else:
             raise TimeoutError("Timeout while waiting for data")
 
